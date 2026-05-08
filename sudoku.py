@@ -27,8 +27,18 @@ class Cell:
 
 
 class Sudoku:
-    def __init__(self, sudoku):
-        self.grid: list[list[Cell]] = deepcopy(sudoku)
+    def __init__(self, text: str):
+        lines = text.strip().splitlines()
+        self.grid: list[list[Cell]] = []
+        for line in lines:
+            row = []
+            for ch in line:
+                n = int(ch)
+                if n == 0:
+                    row.append(Cell())
+                else:
+                    row.append(Cell({n}))
+            self.grid.append(row)
 
     def show(self):
         # add edge
@@ -64,27 +74,18 @@ class Sudoku:
         print("")
 
 
+puzzle = """
+530070000
+600195000
+098000060
+800760003
+400853001
+700920006
+060037284
+000419605
+000080079
+"""
 
-sudoku_data = [
-    [Cell({5}), Cell({3}), Cell({1,2,4}), Cell({2,6}), Cell({7}), Cell({2,4,6,8}), Cell({1,4,8,9}), Cell({1,2,4,9}), Cell({2,4,8})],
-
-    [Cell({6}), Cell({2,4,7}), Cell({2,4,7}), Cell({1}), Cell({9}), Cell({5}), Cell({3,4,7,8}), Cell({2,3,4}), Cell({2,4,7,8})],
-
-    [Cell({1,2}), Cell({9}), Cell({8}), Cell({2,3}), Cell({3,4}), Cell({2,4}), Cell({1,3,4,5,7}), Cell({6}), Cell({2,4,7})],
-
-    [Cell({8}), Cell({1,2,5}), Cell({1,2,5,9}), Cell({7}), Cell({6}), Cell({1,4}), Cell({4,5,7,9}), Cell({2,4,5,9}), Cell({3})],
-
-    [Cell({4}), Cell({2,5}), Cell({2,5,6,9}), Cell({8}), Cell({5}), Cell({3}), Cell({7,9}), Cell({2,5,9}), Cell({1})],
-
-    [Cell({7}), Cell({1,5}), Cell({1,3,5,9}), Cell({9}), Cell({2}), Cell({1,4}), Cell({4,5,8}), Cell({4,5}), Cell({6})],
-
-    [Cell({1,3,9}), Cell({6}), Cell({1,3,4,5,7,9}), Cell({3,5}), Cell({3}), Cell({7}), Cell({2}), Cell({8}), Cell({4})],
-
-    [Cell({2,3}), Cell({2,7,8}), Cell({2,3,7}), Cell({4}), Cell({1}), Cell({9}), Cell({6}), Cell({3,7}), Cell({5})],
-
-    [Cell({1,2,3}), Cell({1,2,4,5}), Cell({1,2,3,4,5}), Cell({2,3,5,6}), Cell({8}), Cell({2,6}), Cell({1,3,4,7,9}), Cell({7}), Cell({9})],
-]
-
-game = Sudoku(sudoku_data)
+game = Sudoku(puzzle)
 
 game.show()
