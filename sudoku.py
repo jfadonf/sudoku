@@ -1,5 +1,5 @@
 from copy import deepcopy
-
+import matplotlib.pyplot as plt
 
 class Cell:
     def __init__(self, possibilities=None):
@@ -74,6 +74,35 @@ class Sudoku:
         print("")
 
 
+    def draw(self):
+        fig, ax = plt.subplots(figsize=(6, 6))
+        # grid lines
+        for i in range(10):
+            linewidth = 3 if i % 3 == 0 else 1
+            # horizontal
+            ax.plot([0, 9], [i, i], linewidth=linewidth)
+            # vertical
+            ax.plot([i, i], [0, 9], linewidth=linewidth)
+        # numbers
+        for r in range(9):
+            for c in range(9):
+                cell = self.grid[r][c]
+                if cell.solved:
+                    ax.text(
+                        c + 0.5,
+                        8.5 - r,
+                        str(cell.value()),
+                        ha="center",
+                        va="center",
+                        fontsize=20
+                    )
+        ax.set_xlim(0, 9)
+        ax.set_ylim(0, 9)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.set_aspect("equal")
+        plt.show() 
+
 puzzle = """
 530070000
 600195000
@@ -88,4 +117,4 @@ puzzle = """
 
 game = Sudoku(puzzle)
 
-game.show()
+game.draw()
