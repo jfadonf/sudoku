@@ -20,7 +20,7 @@ class Cell:
     def __init__(self, row, column, possibilities=None):
         self.row = row
         self.column = column
-        self.block = (row // 3) * 3 + (column // 3) + 1
+        self.block = ((row - 1) // 3) * 3 + ((column - 1) // 3) + 1
 
         if possibilities is None:
             possibilities = {1,2,3,4,5,6,7,8,9}
@@ -29,6 +29,7 @@ class Cell:
 
         if len(self.possibilities) == 0:
             raise ValueError("No possibilities here!")
+        print(self.row, self.column, self.block)
 
     @property
     def solved(self) -> bool:
