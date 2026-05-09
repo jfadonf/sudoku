@@ -11,7 +11,16 @@ import matplotlib.pyplot as plt
 # Cell.len
 # Cell.repr
 class Cell:
-    def __init__(self, possibilities=None):
+
+    row: int
+    column: int
+    block: int
+    possibilities: set[int]
+    
+    def __init__(self, row, column, possibilities=None):
+        self.row = row
+        self.column = column
+        self.block = (row // 3) * 3 + (column // 3) + 1
 
         if possibilities is None:
             possibilities = {1,2,3,4,5,6,7,8,9}
@@ -43,14 +52,14 @@ class Sudoku:
     def __init__(self, text: str):
         lines = text.strip().splitlines()
         self.grid: list[list[Cell]] = []
-        for line in lines:
+        for r, line in enumerate(lines, start=1):
             row = []
-            for ch in line:
+            for c, ch in enumerate(line, start=1):
                 n = int(ch)
                 if n == 0:
-                    row.append(Cell())
+                    row.append(Cell(r, c))
                 else:
-                    row.append(Cell({n}))
+                    row.append(Cell(r, c, {n}))
             self.grid.append(row)
 
     def show_stage_in_str(self):
