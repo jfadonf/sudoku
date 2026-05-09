@@ -40,7 +40,7 @@ class Sudoku:
                     row.append(Cell({n}))
             self.grid.append(row)
 
-    def show(self):
+    def show_stage_in_str(self):
         # add edge
         print("-" * 25)
         for r, row in enumerate(self.grid):
@@ -74,7 +74,7 @@ class Sudoku:
         print("")
 
 
-    def draw(self):
+    def show_stage_in_graphic(self):
         fig, ax = plt.subplots(figsize=(6, 6))
         # grid lines
         for i in range(10):
@@ -103,6 +103,56 @@ class Sudoku:
         ax.set_aspect("equal")
         plt.show() 
 
+    def show_progress_in_graphic(self):
+        fig, ax = plt.subplots(figsize=(9, 9))
+        # draw grid lines
+        for i in range(10):
+            linewidth = 3 if i % 3 == 0 else 1
+            # horizontal
+            ax.plot([0, 9], [i, i], color="black", linewidth=linewidth)
+            # vertical
+            ax.plot([i, i], [0, 9], color="black", linewidth=linewidth)
+        # draw cells
+        for r in range(9):
+            for c in range(9):
+                cell = self.grid[r][c]
+                x0 = c
+                y0 = 8 - r
+                # solved cell
+                if cell.solved:
+                    ax.text(
+                        x0 + 0.5,
+                        y0 + 0.5,
+                        str(cell.value()),
+                        ha="center",
+                        va="center",
+                        fontsize=24
+                    )
+                # candidate numbers
+                else:
+                    for n in range(1, 10):
+                        if n in cell.possibilities:
+                            # mini-grid position
+                            sub_r = (n - 1) // 3
+                            sub_c = (n - 1) % 3
+                            x = x0 + (sub_c + 0.5) / 3
+                            y = y0 + 1 - (sub_r + 0.5) / 3
+                            ax.text(
+                                x,
+                                y,
+                                str(n),
+                                ha="center",
+                                va="center",
+                                fontsize=8
+                            )
+        ax.set_xlim(0, 9)
+        ax.set_ylim(0, 9)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.set_aspect("equal")
+        plt.show()
+
+
 puzzle = """
 530070000
 600195000
@@ -117,4 +167,4 @@ puzzle = """
 
 game = Sudoku(puzzle)
 
-game.draw()
+game.show_progress_in_graphic()
