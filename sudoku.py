@@ -29,7 +29,6 @@ class Cell:
 
         if len(self.possibilities) == 0:
             raise ValueError("No possibilities here!")
-        print(self.row, self.column, self.block)
 
     @property
     def solved(self) -> bool:
@@ -50,20 +49,29 @@ class Cell:
 # function to show_stage_in_graphic
 # function to show_progress_in_graphic
 class Sudoku:
+
+    grid: list[list[Cell]]
+    unsolved: list[Cell]
+
     def __init__(self, text: str):
         lines = text.strip().splitlines()
         self.grid: list[list[Cell]] = []
+        self.unsolved = []
+
         for r, line in enumerate(lines, start=1):
             row = []
             for c, ch in enumerate(line, start=1):
                 n = int(ch)
                 if n == 0:
-                    row.append(Cell(r, c))
+                    new_cell = Cell(r, c)
+                    row.append(new_cell)
+                    self.unsolved.append(new_cell)
                 else:
                     row.append(Cell(r, c, {n}))
             self.grid.append(row)
 
     def show_stage_in_str(self):
+
         # add edge
         print("-" * 25)
         for r, row in enumerate(self.grid):
@@ -92,6 +100,7 @@ class Sudoku:
             line.append("|")
 
             print(" ".join(line))
+
         # add adge
         print("-" * 25)
         print("")
@@ -191,6 +200,9 @@ puzzle = """
 # instanciate a Sudoku
 game = Sudoku(puzzle)
 
+# show the initial state
 game.show_stage_in_graphic()
 
+# 1st step: show all 
 game.show_progress_in_graphic()
+print(len(game.unsolved))
