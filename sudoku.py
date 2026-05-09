@@ -1,6 +1,15 @@
+# to copy nested list
 from copy import deepcopy
+
+# to draw the Sudoku in graphic
 import matplotlib.pyplot as plt
 
+# the class of single cell:
+# __init__ with the possibilities
+# Cell.solved
+# Cell.value
+# Cell.len
+# Cell.repr
 class Cell:
     def __init__(self, possibilities=None):
 
@@ -25,7 +34,11 @@ class Cell:
     def __repr__(self):
         return str(self.possibilities)
 
-
+# the class of Sudoku grid
+# __init__ with multiline str
+# function to show_stage_in_str
+# function to show_stage_in_graphic
+# function to show_progress_in_graphic
 class Sudoku:
     def __init__(self, text: str):
         lines = text.strip().splitlines()
@@ -152,7 +165,7 @@ class Sudoku:
         ax.set_aspect("equal")
         plt.show()
 
-
+# example of Sudoku str
 puzzle = """
 530070000
 600195000
@@ -165,6 +178,9 @@ puzzle = """
 000080079
 """
 
+# instanciate a Sudoku
 game = Sudoku(puzzle)
+
+game.show_stage_in_graphic()
 
 game.show_progress_in_graphic()
