@@ -25,10 +25,14 @@ class Cell:
         if possibilities is None:
             possibilities = {1,2,3,4,5,6,7,8,9}
 
-        self.possibilities: set[int] = set(possibilities)
+        self.possibilities = set(possibilities)
 
         if len(self.possibilities) == 0:
             raise ValueError("No possibilities here!")
+
+        self.row = None
+        self.column = None
+        self.block = None
 
     @property
     def solved(self) -> bool:
@@ -43,6 +47,26 @@ class Cell:
     def __repr__(self):
         return str(self.possibilities)
 
+# the group contains cells
+class House:
+    def __init__(self, house_type, index):
+        self.house_type = house_type
+        self.index = index
+        self.cells = []
+
+    def add(self, cell):
+        self.cells.append(cell)
+
+    def __iter__(self):
+        return iter(self.cells)
+
+    def __len__(self):
+        return len(self.cells)
+
+    def __repr__(self):
+        return f"{self.house_type} {self.index}"
+
+
 # the class of Sudoku grid
 # __init__ with multiline str
 # function to show_stage_in_str
@@ -51,23 +75,41 @@ class Cell:
 class Sudoku:
 
     grid: list[list[Cell]]
-    unsolved: list[Cell]
+    unsolved: House
 
     def __init__(self, text: str):
         lines = text.strip().splitlines()
-        self.grid: list[list[Cell]] = []
-        self.unsolved = []
 
-        for r, line in enumerate(lines, start=1):
+        self.rows = [House("Row", i) for i in range(9)]
+        self.columns = [House("Column", i) for i in range(9)]
+        self.blocks = [House("Block", i) for i in range(9)]
+
+        self.grid = []
+        self.unsolved = House("Unsolved", 0)
+
+        for r, line in enumerate(lines):
             row = []
-            for c, ch in enumerate(line, start=1):
+            for c, ch in enumerate(line):
                 n = int(ch)
                 if n == 0:
-                    new_cell = Cell(r, c)
-                    row.append(new_cell)
-                    self.unsolved.append(new_cell)
+                    cell = Cell(r, c)
+                    self.unsolved.add(cell)
                 else:
-                    row.append(Cell(r, c, {n}))
+                    cell = Cell(r, c, {n})
+
+                # assign houses to the cell's attributes
+                self.row = self.rows[r]
+                self.column = self.columns[c]
+                block_index = (r // 3) * 3 + (c // 3)
+                cell.block = self.blocks[block_index]
+
+                # add cell into houses
+                self.rows[r].add(cell)
+                self.columns[c].add(cell)
+                self.blocks[block_index].add(cell)
+
+                row.append(cell)
+
             self.grid.append(row)
 
     def show_stage_in_str(self):
@@ -197,12 +239,21 @@ puzzle = """
 000080079
 """
 
+# Process of solving
 # instanciate a Sudoku
 game = Sudoku(puzzle)
 
 # show the initial state
 game.show_stage_in_graphic()
 
-# 1st step: show all 
+# 1st step: show all possibilities
 game.show_progress_in_graphic()
 print(len(game.unsolved))
+
+# 2nd step: remove all the numbers occurs at 
+# the same row, column and block, for all cells
+# in unsolved list.
+# for question_cell in game.unsolved.cells:
+#    # get all cells of same row
+#    for cell in game.grid[question_cell.row]:
+#        question_cell.possibilities.remove(cell.value)
