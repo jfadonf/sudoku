@@ -179,8 +179,13 @@ class Sudoku:
         ax.set_aspect("equal")
         plt.show() 
 
-    def show_progress_in_graphic(self, show_p=True):
+    def show_progress_in_graphic(self, title, show_p=True):
         fig, ax = plt.subplots(figsize=(9, 9))
+        fig.suptitle(title, fontsize=24)
+        ax.set_title(
+            f"Remaining unsolved cells: {len(self.unsolved)}",
+            fontsize=14
+        )
         # draw grid lines
         for i in range(10):
             linewidth = 3 if i % 3 == 0 else 1
@@ -310,13 +315,15 @@ puzzle2 = """
 game = Sudoku(puzzle2)
 
 # 1st step: show the initial state
-game.show_progress_in_graphic(False)
+game.show_progress_in_graphic("Initial State", False)
 # show all the possibilities
-game.show_progress_in_graphic()
+game.show_progress_in_graphic("All Possibilities")
 
 # 2nd step: prune in RCB
+step = 1
 while game.prune_in_RCB():
-    game.show_progress_in_graphic()
+    title = "After " + str(step) + "prune in RCB"
+    game.show_progress_in_graphic(title)
+    step += 1
 
-game.show_progress_in_str()
-print("No progress right now.")
+game.show_progress_in_graphic("No progess right now!")
