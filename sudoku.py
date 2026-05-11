@@ -114,7 +114,7 @@ class Sudoku:
 
             self.grid.append(row)
 
-    def show_stage_in_str(self):
+    def show_progress_in_str(self):
 
         # add edge
         print("-" * 25)
@@ -179,7 +179,7 @@ class Sudoku:
         ax.set_aspect("equal")
         plt.show() 
 
-    def show_progress_in_graphic(self):
+    def show_progress_in_graphic(self, show_p=True):
         fig, ax = plt.subplots(figsize=(9, 9))
         # draw grid lines
         for i in range(10):
@@ -205,7 +205,7 @@ class Sudoku:
                         fontsize=24
                     )
                 # candidate numbers
-                else:
+                elif show_p:
                     for n in range(1, 10):
                         if n in cell.p:
                             # mini-grid position
@@ -284,24 +284,14 @@ puzzle = """
 # instanciate a Sudoku
 game = Sudoku(puzzle)
 
-# show the initial state
-# game.show_stage_in_graphic()
-
-# 1st step: show all p
+# 1st step: show the initial state
+game.show_progress_in_graphic(False)
+# show all the possibilities
 game.show_progress_in_graphic()
 
 # 2nd step: prune in RCB
-print(game.prune_in_RCB())
-game.show_progress_in_graphic()
-print(game.prune_in_RCB())
-game.show_progress_in_graphic()
-print(game.prune_in_RCB())
-game.show_progress_in_graphic()
-print(game.prune_in_RCB())
-game.show_progress_in_graphic()
-print(game.prune_in_RCB())
-game.show_progress_in_graphic()
-print(game.prune_in_RCB())
-game.show_progress_in_graphic()
+while game.prune_in_RCB():
+    game.show_progress_in_graphic()
 
-
+game.show_progress_in_str()
+print("No progress right now.")
