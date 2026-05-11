@@ -28,9 +28,9 @@ class Cell:
         self.p = set(possibilities)
 
 
-        self.row_cells = None
-        self.column_cells = None
-        self.block_cells = None
+        self.row = None
+        self.column = None
+        self.block = None
 
     def remove(self, n):
         self.p.discard(n)
@@ -84,14 +84,18 @@ class Sudoku:
     unsolved: House
 
     def __init__(self, text: str):
-        lines = text.strip().splitlines()
 
+        self.grid = []
+        self.unsolved = House("Unsolved", 0)
+
+        # Instanciate RCB houses
         self.rows = [House("Row", i) for i in range(9)]
         self.columns = [House("Column", i) for i in range(9)]
         self.blocks = [House("Block", i) for i in range(9)]
 
-        self.grid = []
-        self.unsolved = House("Unsolved", 0)
+
+        # Instanciate cells, 
+        lines = text.strip().splitlines()
 
         for r, line in enumerate(lines):
             row = []
@@ -103,13 +107,16 @@ class Sudoku:
                 else:
                     cell = Cell(r, c, {n})
 
-                # assign houses to the cell's attributes
-                cell.row_cells = self.rows[r]
-                cell.column_cells = self.columns[c]
+                # assign RCB houses to the cell's attributes
+                cell.row = self.rows[r]
+                cell.column = self.columns[c]
                 block_index = (r // 3) * 3 + (c // 3)
-                cell.block_cells = self.blocks[block_index]
+                cell.block = self.blocks[block_index]
 
-                # add cell into houses
+                # assign RCB peers houses to the cell's attributes
+
+
+                # add cell into RCB houses
                 self.rows[r].add(cell)
                 self.columns[c].add(cell)
                 self.blocks[block_index].add(cell)
@@ -117,6 +124,33 @@ class Sudoku:
                 row.append(cell)
 
             self.grid.append(row)
+        
+        # Instanciate peers houses
+        for r in range(9):
+            for c in range(9):
+                cell = self.grid[r][c]
+
+                block_index = (r // 3) * 3 + (c // 3)
+
+                row_peers = House("Row Peers", str(r * 10 + c))
+                column_peers = House("Colume Peers", str(r * 10 + c))
+                block_peers = House("Block Peers", block_index)
+                
+                for peer in self.rows[r]:
+                    row_peers.add(peer)
+                row_peers.remove(cell)
+                cell.row_peers = row_peers
+
+                for peer in self.columns[c]:
+                    column_peers.add(peer)
+                column_peers.remove(cell)
+                cell.column_peers = column_peers
+
+                block_index = (r // 3) * 3 + (c // 3)
+                for peer in self.blocks[block_index]:
+                    block_peers.add(peer)
+                block_peers.remove(cell)
+                cell.block_peers = block_peers
 
     def show_progress_in_str(self):
 
@@ -253,22 +287,22 @@ class Sudoku:
         for index, question_cell in enumerate(self.unsolved):
             
             # remove the number of solved cells from possibilities
-            for cell in question_cell.row_cells:
-                if cell.is_solved() and cell is not question_cell:
+            for cell in question_cell.row_peers:
+                if cell.is_solved(): 
                     p_len = len(question_cell.p)
                     question_cell.remove(cell.value())
                     if p_len != len(question_cell):
                         p_removed = True
 
-            for cell in question_cell.column_cells:
-                if cell.is_solved() and cell is not question_cell:
+            for cell in question_cell.column_peers:
+                if cell.is_solved(): 
                     p_len = len(question_cell.p)
                     question_cell.remove(cell.value())
                     if p_len != len(question_cell):
                         p_removed = True
 
-            for cell in question_cell.block_cells:
-                if cell.is_solved() and cell is not question_cell:
+            for cell in question_cell.block_peers:
+                if cell.is_solved():
                     p_len = len(question_cell.p)
                     question_cell.remove(cell.value())
                     if p_len != len(question_cell):
@@ -316,7 +350,7 @@ puzzle2 = """
 
 # Process of solving
 # instanciate a Sudoku
-game = Sudoku(puzzle2)
+game = Sudoku(puzzle1)
 
 # 1st step: show the initial state
 game.show_progress_in_graphic("Initial State", False)
@@ -329,5 +363,8 @@ while game.prune_in_RCB():
     title = "After " + str(step) + "prune in RCB"
     game.show_progress_in_graphic(title)
     step += 1
+    # Is there any cell unsolved
+    if not len(game.unsolved):
+        game.show_progress_in_graphic("Sudoku has been solved!")
 
 game.show_progress_in_graphic("No progess right now!")
