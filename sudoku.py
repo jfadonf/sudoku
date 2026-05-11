@@ -27,12 +27,16 @@ class Cell:
 
         self.p = set(possibilities)
 
-        if len(self.p) == 0:
-            raise ValueError("No possibilities here!")
 
         self.row_cells = None
         self.column_cells = None
         self.block_cells = None
+
+    def remove(self, n):
+        self.p.discard(n)
+        if len(self.p) == 0:
+            print(f"The cell r: {self.row}, c: {self.column}")
+            raise ValueError(f"No possibilities here!")
 
     def is_solved(self) -> bool:
         return len(self.p) == 1
@@ -252,21 +256,21 @@ class Sudoku:
             for cell in question_cell.row_cells:
                 if cell.is_solved() and cell is not question_cell:
                     p_len = len(question_cell.p)
-                    question_cell.p.discard(cell.value())
+                    question_cell.remove(cell.value())
                     if p_len != len(question_cell):
                         p_removed = True
 
             for cell in question_cell.column_cells:
                 if cell.is_solved() and cell is not question_cell:
                     p_len = len(question_cell.p)
-                    question_cell.p.discard(cell.value())
+                    question_cell.remove(cell.value())
                     if p_len != len(question_cell):
                         p_removed = True
 
             for cell in question_cell.block_cells:
                 if cell.is_solved() and cell is not question_cell:
                     p_len = len(question_cell.p)
-                    question_cell.p.discard(cell.value())
+                    question_cell.remove(cell.value())
                     if p_len != len(question_cell):
                         p_removed = True
 
