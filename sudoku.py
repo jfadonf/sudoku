@@ -15,37 +15,36 @@ class Cell:
     row: int
     column: int
     block: int
-    possibilities: set[int]
+    p: set[int]
     
-    def __init__(self, row, column, possibilities=None):
-        self.row = row
-        self.column = column
-        self.block = ((row - 1) // 3) * 3 + ((column - 1) // 3) + 1
+    def __init__(self, r, c, possibilities=None):
+        self.row = r
+        self.column = c
+        self.block = ((r - 1) // 3) * 3 + ((c - 1) // 3) + 1
 
         if possibilities is None:
             possibilities = {1,2,3,4,5,6,7,8,9}
 
-        self.possibilities = set(possibilities)
+        self.p = set(possibilities)
 
-        if len(self.possibilities) == 0:
+        if len(self.p) == 0:
             raise ValueError("No possibilities here!")
 
-        self.row = None
-        self.column = None
-        self.block = None
+        self.row_cells = None
+        self.column_cells = None
+        self.block_cells = None
 
-    @property
-    def solved(self) -> bool:
-        return len(self.possibilities) == 1
+    def is_solved(self) -> bool:
+        return len(self.p) == 1
 
     def value(self) -> int:
-        return next(iter(self.possibilities))
+        return next(iter(self.p))
 
     def __len__(self):
-        return len(self.possibilities)
+        return len(self.p)
 
     def __repr__(self):
-        return str(self.possibilities)
+        return str(self.p)
 
 # the group contains cells
 class House:
@@ -56,6 +55,9 @@ class House:
 
     def add(self, cell):
         self.cells.append(cell)
+
+    def remove(self, cell):
+        self.cells.remove(cell)
 
     def __iter__(self):
         return iter(self.cells)
@@ -98,10 +100,10 @@ class Sudoku:
                     cell = Cell(r, c, {n})
 
                 # assign houses to the cell's attributes
-                self.row = self.rows[r]
-                self.column = self.columns[c]
+                cell.row_cells = self.rows[r]
+                cell.column_cells = self.columns[c]
                 block_index = (r // 3) * 3 + (c // 3)
-                cell.block = self.blocks[block_index]
+                cell.block_cells = self.blocks[block_index]
 
                 # add cell into houses
                 self.rows[r].add(cell)
@@ -133,7 +135,7 @@ class Sudoku:
                 if c in (3, 6):
                     line.append("|")
 
-                if cell.solved:
+                if cell.is_solved():
                     line.append(str(cell.value()))
                 else:
                     line.append(".")
@@ -161,7 +163,7 @@ class Sudoku:
         for r in range(9):
             for c in range(9):
                 cell = self.grid[r][c]
-                if cell.solved:
+                if cell.is_solved():
                     ax.text(
                         c + 0.5,
                         8.5 - r,
@@ -193,7 +195,7 @@ class Sudoku:
                 x0 = c
                 y0 = 8 - r
                 # solved cell
-                if cell.solved:
+                if cell.is_solved():
                     ax.text(
                         x0 + 0.5,
                         y0 + 0.5,
@@ -205,7 +207,7 @@ class Sudoku:
                 # candidate numbers
                 else:
                     for n in range(1, 10):
-                        if n in cell.possibilities:
+                        if n in cell.p:
                             # mini-grid position
                             sub_r = (n - 1) // 3
                             sub_c = (n - 1) % 3
@@ -226,6 +228,45 @@ class Sudoku:
         ax.set_aspect("equal")
         plt.show()
 
+
+
+    # prune in RCB: remove all the numbers occurs at 
+    # the same row, column and block, for all cells
+    # in unsolved list.
+    # if any unsolved cell become solved then remove it
+    # from unsolved cells and return true
+    def prune_in_RCB(self):
+        # index of newly solved cells
+        newly_solved = []
+
+        # for each unsolved cells
+        for index, question_cell in enumerate(self.unsolved):
+            
+            # remove the number of solved cells from possibilities
+            for cell in question_cell.row_cells:
+                if cell.is_solved() and cell is not question_cell:
+                    question_cell.p.discard(cell.value())
+
+            for cell in question_cell.column_cells:
+                if cell.is_solved() and cell is not question_cell:
+                    question_cell.p.discard(cell.value())
+
+            for cell in question_cell.block_cells:
+                if cell.is_solved() and cell is not question_cell:
+                    question_cell.p.discard(cell.value())
+
+            # if the question_cell has newly solved then
+            # save the index of newly solved cells
+            if len(question_cell.p) == 1:
+                newly_solved.append(question_cell)
+
+        # remove solved cells from unsolved list
+        for cell in newly_solved:
+            self.unsolved.remove(cell)
+
+        return bool(newly_solved)
+
+
 # example of Sudoku str
 puzzle = """
 530070000
@@ -244,16 +285,23 @@ puzzle = """
 game = Sudoku(puzzle)
 
 # show the initial state
-game.show_stage_in_graphic()
+# game.show_stage_in_graphic()
 
-# 1st step: show all possibilities
+# 1st step: show all p
 game.show_progress_in_graphic()
-print(len(game.unsolved))
 
-# 2nd step: remove all the numbers occurs at 
-# the same row, column and block, for all cells
-# in unsolved list.
-# for question_cell in game.unsolved.cells:
-#    # get all cells of same row
-#    for cell in game.grid[question_cell.row]:
-#        question_cell.possibilities.remove(cell.value)
+# 2nd step: prune in RCB
+print(game.prune_in_RCB())
+game.show_progress_in_graphic()
+print(game.prune_in_RCB())
+game.show_progress_in_graphic()
+print(game.prune_in_RCB())
+game.show_progress_in_graphic()
+print(game.prune_in_RCB())
+game.show_progress_in_graphic()
+print(game.prune_in_RCB())
+game.show_progress_in_graphic()
+print(game.prune_in_RCB())
+game.show_progress_in_graphic()
+
+
