@@ -238,6 +238,7 @@ class Sudoku:
     def prune_in_RCB(self):
         # index of newly solved cells
         newly_solved = []
+        p_removed = False
 
         # for each unsolved cells
         for index, question_cell in enumerate(self.unsolved):
@@ -245,30 +246,42 @@ class Sudoku:
             # remove the number of solved cells from possibilities
             for cell in question_cell.row_cells:
                 if cell.is_solved() and cell is not question_cell:
+                    p_len = len(question_cell.p)
                     question_cell.p.discard(cell.value())
+                    if p_len != len(question_cell):
+                        p_removed = True
 
             for cell in question_cell.column_cells:
                 if cell.is_solved() and cell is not question_cell:
+                    p_len = len(question_cell.p)
                     question_cell.p.discard(cell.value())
+                    if p_len != len(question_cell):
+                        p_removed = True
 
             for cell in question_cell.block_cells:
                 if cell.is_solved() and cell is not question_cell:
+                    p_len = len(question_cell.p)
                     question_cell.p.discard(cell.value())
+                    if p_len != len(question_cell):
+                        p_removed = True
 
-            # if the question_cell has newly solved then
-            # save the index of newly solved cells
-            if len(question_cell.p) == 1:
-                newly_solved.append(question_cell)
+            # if possibility has been removed then
+            if p_removed:
+
+                # if the question_cell has newly solved then
+                # save the index of newly solved cells
+                if len(question_cell.p) == 1:
+                    newly_solved.append(question_cell)
 
         # remove solved cells from unsolved list
         for cell in newly_solved:
             self.unsolved.remove(cell)
 
-        return bool(newly_solved)
+        return p_removed
 
 
 # example of Sudoku str
-puzzle = """
+puzzle1 = """
 530070000
 600195000
 098000060
@@ -280,9 +293,21 @@ puzzle = """
 000080079
 """
 
+puzzle2 = """
+806000000
+240305000
+003006904
+000029600
+050000009
+300000517
+000807401
+000000000
+000014038
+"""
+
 # Process of solving
 # instanciate a Sudoku
-game = Sudoku(puzzle)
+game = Sudoku(puzzle2)
 
 # 1st step: show the initial state
 game.show_progress_in_graphic(False)
