@@ -322,9 +322,9 @@ class Sudoku:
 
         return p_removed
 
-
-# example of Sudoku str
-puzzle1 = """
+def main():
+    # example of Sudoku str
+    puzzle1 = """
 530070000
 600195000
 098000060
@@ -336,7 +336,7 @@ puzzle1 = """
 000080079
 """
 
-puzzle2 = """
+    puzzle2 = """
 806000000
 240305000
 003006904
@@ -348,23 +348,28 @@ puzzle2 = """
 000014038
 """
 
-# Process of solving
-# instanciate a Sudoku
-game = Sudoku(puzzle1)
+    # Process of solving
+    # instanciate a Sudoku
+    game = Sudoku(puzzle2)
 
-# 1st step: show the initial state
-game.show_progress_in_graphic("Initial State", False)
-# show all the possibilities
-game.show_progress_in_graphic("All Possibilities")
+    # 1st step: show the initial state
+    game.show_progress_in_graphic("Initial State", False)
+    # show all the possibilities
+    game.show_progress_in_graphic("All Possibilities")
 
-# 2nd step: prune in RCB
-step = 1
-while game.prune_in_RCB():
-    title = "After " + str(step) + "prune in RCB"
-    game.show_progress_in_graphic(title)
-    step += 1
-    # Is there any cell unsolved
-    if not len(game.unsolved):
-        game.show_progress_in_graphic("Sudoku has been solved!")
+    # 2nd step: prune in RCB
+    step = 1
+    while game.prune_in_RCB():
+        title = "After " + str(step) + "prune in RCB"
+        game.show_progress_in_graphic(title)
+        step += 1
+        # Is there any cell unsolved
+        if not len(game.unsolved):
+            game.show_progress_in_graphic("Sudoku has been solved!")
+            return True
 
-game.show_progress_in_graphic("No progess right now!")
+    game.show_progress_in_graphic("No progess right now!")
+    return False
+
+if __name__ == "__main__":
+    main()
