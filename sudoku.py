@@ -12,15 +12,22 @@ import matplotlib.pyplot as plt
 # Cell.repr
 class Cell:
 
-    row: int
-    column: int
-    block: int
+    row_number: int
+    grid__number: int
+    grid_number: int
     p: set[int]
+    row: House
+    column: House
+    block: House
+    row_peers: House
+    column_peers: House
+    block_peers: House
     
+    # 
     def __init__(self, r, c, possibilities=None):
-        self.row = r
-        self.column = c
-        self.block = ((r - 1) // 3) * 3 + ((c - 1) // 3) + 1
+        self.row_number = r
+        self.column_number = c
+        self.block_number = ((r - 1) // 3) * 3 + ((c - 1) // 3) + 1
 
         if possibilities is None:
             possibilities = {1,2,3,4,5,6,7,8,9}
@@ -82,6 +89,7 @@ class Sudoku:
 
     grid: list[list[Cell]]
     unsolved: House
+    step: int = 0
 
     def __init__(self, text: str):
 
@@ -113,9 +121,6 @@ class Sudoku:
                 block_index = (r // 3) * 3 + (c // 3)
                 cell.block = self.blocks[block_index]
 
-                # assign RCB peers houses to the cell's attributes
-
-
                 # add cell into RCB houses
                 self.rows[r].add(cell)
                 self.columns[c].add(cell)
@@ -125,7 +130,7 @@ class Sudoku:
 
             self.grid.append(row)
         
-        # Instanciate peers houses
+        # Initialize peers of all cells with its own peers of RCB
         for r in range(9):
             for c in range(9):
                 cell = self.grid[r][c]
@@ -271,14 +276,24 @@ class Sudoku:
         ax.set_aspect("equal")
         plt.show()
 
+    # to know if technique make any progress, count all p
+    def count_all_p(self):
+        count_p = 0
+        for r in range(9):
+            for c in range(9):
+                count_p += len(self.grid[r][c].p)
+        return count_p
 
 
-    # prune in RCB: remove all the numbers occurs at 
-    # the same row, column and block, for all cells
-    # in unsolved list.
+    def is_solved(self):
+        return not self.unsolved
+
+    # Recursive Basic elimination:
+    # remove all the numbers occurs at the same row,
+    # column and block, for all unsolved cells.
     # if any unsolved cell become solved then remove it
-    # from unsolved cells and return true
-    def prune_in_RCB(self):
+    # from unsolved cells.
+    def basic_elimination(self):
         # index of newly solved cells
         newly_solved = []
         p_removed = False
@@ -320,7 +335,12 @@ class Sudoku:
         for cell in newly_solved:
             self.unsolved.remove(cell)
 
-        return p_removed
+        # if any possibility has been removed the go on
+        # else show current state and return
+        if p_removed:
+            self.step += 1
+            title = "State after " + str(self.step) + " Basic Elimination"
+            self.show_progress_in_graphic(title)
 
 def main():
     # example of Sudoku str
@@ -348,28 +368,55 @@ def main():
 000014038
 """
 
-    # Process of solving
     # instanciate a Sudoku
     game = Sudoku(puzzle2)
 
-    # 1st step: show the initial state
+    # show the initial state
     game.show_progress_in_graphic("Initial State", False)
+
     # show all the possibilities
     game.show_progress_in_graphic("All Possibilities")
 
-    # 2nd step: prune in RCB
-    step = 1
-    while game.prune_in_RCB():
-        title = "After " + str(step) + "prune in RCB"
-        game.show_progress_in_graphic(title)
-        step += 1
-        # Is there any cell unsolved
-        if not len(game.unsolved):
-            game.show_progress_in_graphic("Sudoku has been solved!")
-            return True
+### TEST EREA ###
+#     print(game.grid[3][4].row_number)
+#     print(game.grid[3][4].column_number)
+#     print(game.grid[3][4].block_number)
+#     print(game.grid[3][4].value())
+# 
+#     print(game.grid[3][4].row)
+#     print(game.grid[3][4].column)
+#     print(game.grid[3][4].block)
+# 
+#     print(game.grid[3][4].row_peers.cells)
+#     print(game.grid[3][4].column_peers.cells)
+#     print(game.grid[3][4].block_peers.cells)
+### TEST EREA ###
 
-    game.show_progress_in_graphic("No progess right now!")
-    return False
+    # PROCESS OF SOLVING
+    while True:
+        # count all p before this round techniques
+        all_p_before = game.count_all_p()
 
+        # Technique: Basic eliminations
+        game.basic_elimination()
+
+        # Technique: hidden single
+
+        # Technique: naked pair
+
+        # count all p after this round techniques
+        all_p_after = game.count_all_p()
+
+        # If make no progress this round
+        if all_p_after == all_p_before:
+            
+            # If is solved
+            if game.is_solved():
+                game.show_progress_in_graphic("Sudoku has been solved!")
+                return
+            else:
+                game.show_progress_in_graphic("Final state and need more techniques!")
+                return
+                
 if __name__ == "__main__":
     main()
