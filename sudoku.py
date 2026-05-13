@@ -288,11 +288,12 @@ class Sudoku:
     def is_solved(self):
         return not self.unsolved
 
-    # Recursive Basic elimination:
+    # Basic elimination:
     # remove all the numbers occurs at the same row,
     # column and block, for all unsolved cells.
     # if any unsolved cell become solved then remove it
     # from unsolved cells.
+    # show 
     def basic_elimination(self):
         # index of newly solved cells
         newly_solved = []
@@ -331,16 +332,68 @@ class Sudoku:
                 if len(question_cell.p) == 1:
                     newly_solved.append(question_cell)
 
-        # remove solved cells from unsolved list
-        for cell in newly_solved:
-            self.unsolved.remove(cell)
+        # if any new solved cell
+        if newly_solved:
 
-        # if any possibility has been removed the go on
-        # else show current state and return
-        if p_removed:
+            # remove solved cells from unsolved list
+            for cell in newly_solved:
+                self.unsolved.remove(cell)
+
+            # step += 1 and show sudoku state
             self.step += 1
-            title = "State after " + str(self.step) + " Basic Elimination"
+            title = "Step " + str(self.step) + " Basic Elimination result"
             self.show_progress_in_graphic(title)
+
+            # recursive call for Basic elimination
+            self.basic_elimination()
+        else:
+            return
+
+    # a function find out the hidden single in all House class
+    def hidden_single(self):
+        newly_solved = []
+
+
+        # search in all RCB
+        for house in self.rows + self.columns + self.blocks:
+
+            # count candidate occurrences
+            number_occurrences = {}
+            
+            for i in range(1, 10):
+                number_occurrences[i] = []
+
+            # iterate all cells but solved ones
+            for cell in house:
+                if cell.is_solved():
+                    continue
+                else:
+                    for p in cell.p:
+                        number_occurrences[p].append(cell)
+
+            # hidden single check
+            for number, cells in number_occurrences.items():
+                if len(cells) == 1:
+                    target = cells[0]
+                    newly_solved.append((target, number))
+
+        # if any newly solved, show sudoku state and step += 1
+        if newly_solved:
+            for cell, number in newly_solved:
+
+                # give the single number to the cell
+                cell.p = {number}
+                
+                # remove the cell from unsolved
+                if cell in self.unsolved:
+                    self.unsolved.remove(cell)
+
+            # show the result
+            self.step += 1
+            title = "Step " + str(self.step) + " Basic Hidden Single"
+            self.show_progress_in_graphic(title)
+
+
 
 def main():
     # example of Sudoku str
@@ -356,6 +409,17 @@ def main():
 000080079
 """
 
+    puzzle3 = """
+000700540
+300020000
+704000960
+008205000
+090180000
+400906187
+000800004
+000403070
+000000050
+"""
     puzzle2 = """
 806000000
 240305000
@@ -369,7 +433,7 @@ def main():
 """
 
     # instanciate a Sudoku
-    game = Sudoku(puzzle2)
+    game = Sudoku(puzzle3)
 
     # show the initial state
     game.show_progress_in_graphic("Initial State", False)
@@ -378,7 +442,7 @@ def main():
     game.show_progress_in_graphic("All Possibilities")
 
 ### TEST EREA ###
-#     print(game.grid[3][4].row_number)
+#    print(game.blocks[0].cells)
 #     print(game.grid[3][4].column_number)
 #     print(game.grid[3][4].block_number)
 #     print(game.grid[3][4].value())
@@ -401,6 +465,7 @@ def main():
         game.basic_elimination()
 
         # Technique: hidden single
+        game.hidden_single()
 
         # Technique: naked pair
 
