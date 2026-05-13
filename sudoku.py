@@ -226,7 +226,7 @@ class Sudoku:
         fig, ax = plt.subplots(figsize=(9, 9))
         fig.suptitle(title, fontsize=24)
         ax.set_title(
-            f"Remaining unsolved cells: {len(self.unsolved)}",
+            f"Remaining unsolved cells: {len(self.unsolved)}\nTatol remaining possibilities: {self.p_count()-81}",
             fontsize=14
         )
         # draw grid lines
@@ -277,7 +277,7 @@ class Sudoku:
         plt.show()
 
     # to know if technique make any progress, count all p
-    def count_all_p(self):
+    def p_count(self):
         count_p = 0
         for r in range(9):
             for c in range(9):
@@ -288,12 +288,18 @@ class Sudoku:
     def is_solved(self):
         return not self.unsolved
 
-    # Basic elimination:
+    def validate(self, cell):
+        if cell.is_solved() and cell in self.unsolved:
+            self.unsolved.remove(cell)
+        if not cell.is_solved() and not cell in self.unsolved:
+            self.unsolved.add(cell)
+            
+
+
+    # Solve method: Basic elimination
     # remove all the numbers occurs at the same row,
     # column and block, for all unsolved cells.
-    # if any unsolved cell become solved then remove it
-    # from unsolved cells.
-    # show 
+    # This can remove ps and solve cells
     def basic_elimination(self):
         # index of newly solved cells
         newly_solved = []
@@ -329,7 +335,7 @@ class Sudoku:
 
                 # if the question_cell has newly solved then
                 # save the index of newly solved cells
-                if len(question_cell.p) == 1:
+                if question_cell.is_solved:
                     newly_solved.append(question_cell)
 
         # if any new solved cell
@@ -337,7 +343,7 @@ class Sudoku:
 
             # remove solved cells from unsolved list
             for cell in newly_solved:
-                self.unsolved.remove(cell)
+                self.validate(cell)
 
             # step += 1 and show sudoku state
             self.step += 1
@@ -349,7 +355,9 @@ class Sudoku:
         else:
             return False
 
-    # a function find out the hidden single in all House class
+    # Solve method: Hidden Singles
+    # This searcheshe hidden singles in all House class.
+    # This can solve cells
     def hidden_single(self):
         newly_solved = []
 
@@ -383,20 +391,96 @@ class Sudoku:
             # solve the cells and remove them from unsolved
             for cell, number in newly_solved:
                 cell.p = {number}
-                if cell in self.unsolved:
-                    self.unsolved.remove(cell)
+                self.validate(cell)
 
             # show the result
             self.step += 1
-            title = "Step " + str(self.step) + " Basic Hidden Single"
+            title = "Step " + str(self.step) + " Hidden Single"
             self.show_progress_in_graphic(title)
 
             return True
         else:
             return False
 
+    # Solve method: Naked Pairs
+    # This searchess naked pairs in all Houses.
+    # This can remove ps.
+    def naked_pair(self):
+        
+        p_count_before = self.p_count()
+
+        # searching naked pairs in all houses
+        # iterate all houes
+        # find cells with the same possibility set to get a pair
+        # if the possibility count equals the cell count in the pair
+        # remove the possibilities in the set from all the other cells in the house
+
+        # search all houses
+        for house in self.rows + self.columns + self.blocks:
+
+            # dictionary:
+            # key   -> possibility set
+            # value -> cells having that set
+            groups = {}
+
+            # 1-4:
+            # iterate cells
+            # get unsolved cells
+            # save p sets
+            # group cells with same p set
+            for cell in house:
+
+                if cell.is_solved():
+                    continue
+
+                key = frozenset(cell.p)
+
+                if key not in groups:
+                    groups[key] = []
+
+                groups[key].append(cell)
+
+            # 5:
+            # naked subset check
+            for p_set, cells in groups.items():
+
+                possibility_count = len(p_set)
+                cell_count = len(cells)
+
+                # naked pair/triple/quad...
+                if possibility_count == cell_count:
+
+                    # 6:
+                    # remove possibilities from other cells
+                    for other in house:
+
+                        if other in cells:
+                            continue
+
+                        for n in p_set:
+
+                            if n in other.p:
+                                other.p.discard(n)
+
+                                self.validate(other)
+
+        # progress check: if any p removed, show sudoku state and step += 1
+        if p_count_before != self.p_count():
+
+            # show the result
+            self.step += 1
+            title = "Step " + str(self.step) + " Hidden Single"
+            self.show_progress_in_graphic(title)
+
+            return True
+        else:
+            return False
+
+
+
 def main():
     # example of Sudoku str
+    # BE and HS
     puzzle1 = """
 530070000
 600195000
@@ -409,17 +493,7 @@ def main():
 000080079
 """
 
-    puzzle3 = """
-000700540
-300020000
-704000960
-008205000
-090180000
-400906187
-000800004
-000403070
-000000050
-"""
+    # BE and HS
     puzzle2 = """
 806000000
 240305000
@@ -432,8 +506,73 @@ def main():
 000014038
 """
 
+    # BE and HS
+    puzzle3 = """
+000700540
+300020000
+704000960
+008205000
+090180000
+400906187
+000800004
+000403070
+000000050
+"""
+
+    # BE and HS
+    puzzle4 = """
+006008010
+000650002
+080912003
+037001506
+004700800
+000029000
+040006000
+000370008
+000000700
+"""
+
+    # BE and HS and NP
+    puzzle5 = """
+000079150
+000100600
+100406000
+490000020
+005000700
+200000008
+060000002
+020040900
+007001004
+"""
+
+    # BE and HS and NP
+    puzzle6 = """
+000000000
+009801730
+070630180
+000204000
+001900003
+090080040
+040000000
+003009061
+000006304
+"""
+
+    # BE and HS and NP
+    puzzle7 = """
+100007090
+030020008
+009600500
+005300900
+010080002
+600004000
+300000010
+040000007
+007000300
+"""
+
     # instanciate a Sudoku
-    game = Sudoku(puzzle3)
+    game = Sudoku(puzzle7)
 
     # show the initial state
     game.show_progress_in_graphic("Initial State", False)
@@ -459,7 +598,7 @@ def main():
     # PROCESS OF SOLVING
     while True:
         # count all p before this round techniques
-        all_p_before = game.count_all_p()
+        p_count_before = game.p_count()
 
         # Technique: Basic eliminations
         if game.basic_elimination():
@@ -473,10 +612,10 @@ def main():
         
 
         # count all p after this round techniques
-        all_p_after = game.count_all_p()
+        p_count_after = game.p_count()
 
-        # If make no progress this round
-        if all_p_after == all_p_before:
+        # If it makes no progress after all methods
+        if p_count_after == p_count_before:
             
             # If is solved
             if game.is_solved():
