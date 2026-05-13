@@ -344,10 +344,10 @@ class Sudoku:
             title = "Step " + str(self.step) + " Basic Elimination result"
             self.show_progress_in_graphic(title)
 
-            # recursive call for Basic elimination
-            self.basic_elimination()
+            # return True if made progress
+            return True
         else:
-            return
+            return False
 
     # a function find out the hidden single in all House class
     def hidden_single(self):
@@ -379,12 +379,10 @@ class Sudoku:
 
         # if any newly solved, show sudoku state and step += 1
         if newly_solved:
-            for cell, number in newly_solved:
 
-                # give the single number to the cell
+            # solve the cells and remove them from unsolved
+            for cell, number in newly_solved:
                 cell.p = {number}
-                
-                # remove the cell from unsolved
                 if cell in self.unsolved:
                     self.unsolved.remove(cell)
 
@@ -393,7 +391,9 @@ class Sudoku:
             title = "Step " + str(self.step) + " Basic Hidden Single"
             self.show_progress_in_graphic(title)
 
-
+            return True
+        else:
+            return False
 
 def main():
     # example of Sudoku str
@@ -462,12 +462,15 @@ def main():
         all_p_before = game.count_all_p()
 
         # Technique: Basic eliminations
-        game.basic_elimination()
+        if game.basic_elimination():
+            continue
 
         # Technique: hidden single
-        game.hidden_single()
+        if game.hidden_single():
+            continue
 
         # Technique: naked pair
+        
 
         # count all p after this round techniques
         all_p_after = game.count_all_p()
