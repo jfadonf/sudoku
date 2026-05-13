@@ -6,10 +6,6 @@ import matplotlib.pyplot as plt
 
 # the class of single cell:
 # __init__ with the possibilities
-# Cell.solved
-# Cell.value
-# Cell.len
-# Cell.repr
 class Cell:
 
     row_number: int
@@ -395,7 +391,7 @@ class Sudoku:
 
             # show the result
             self.step += 1
-            title = "Step " + str(self.step) + " Hidden Single"
+            title = "Step " + str(self.step) + " Hidden Single result"
             self.show_progress_in_graphic(title)
 
             return True
@@ -469,7 +465,7 @@ class Sudoku:
 
             # show the result
             self.step += 1
-            title = "Step " + str(self.step) + " Hidden Single"
+            title = "Step " + str(self.step) + " Naked Pair result"
             self.show_progress_in_graphic(title)
 
             return True
@@ -480,7 +476,7 @@ class Sudoku:
 
 def main():
     # example of Sudoku str
-    # BE and HS
+    # BE is OK
     puzzle1 = """
 530070000
 600195000
@@ -493,7 +489,7 @@ def main():
 000080079
 """
 
-    # BE and HS
+    # BE HS is OK
     puzzle2 = """
 806000000
 240305000
@@ -506,7 +502,7 @@ def main():
 000014038
 """
 
-    # BE and HS
+    # BE HS is OK
     puzzle3 = """
 000700540
 300020000
@@ -519,7 +515,7 @@ def main():
 000000050
 """
 
-    # BE and HS
+    # BE HS is OK
     puzzle4 = """
 006008010
 000650002
@@ -532,7 +528,7 @@ def main():
 000000700
 """
 
-    # BE and HS and NP
+    # BE HS NP
     puzzle5 = """
 000079150
 000100600
@@ -545,7 +541,7 @@ def main():
 007001004
 """
 
-    # BE and HS and NP
+    # BE HS
     puzzle6 = """
 000000000
 009801730
@@ -558,7 +554,7 @@ def main():
 000006304
 """
 
-    # BE and HS and NP
+    # BE HS
     puzzle7 = """
 100007090
 030020008
@@ -609,7 +605,8 @@ def main():
             continue
 
         # Technique: naked pair
-        
+        if game.naked_pair():
+            continue
 
         # count all p after this round techniques
         p_count_after = game.p_count()
