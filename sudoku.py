@@ -75,6 +75,22 @@ class House:
     def __repr__(self):
         return f"{self.house_type} {self.index}"
 
+    # search unsolved cells in a house
+    # if number in cells' possibilities,
+    # return {key: number, value: [cells]}
+    def count_same_p(self):
+
+        candidate_cells = {n: [] for n in range(1, 10)}
+
+        for cell in self:
+
+            if cell.is_solved():
+                continue
+
+            for n in cell.p: 
+                candidate_cells[n].append(cell)
+        return candidate_cells
+
 
 # the class of Sudoku grid
 # __init__ with multiline str
