@@ -9,8 +9,8 @@ import matplotlib.pyplot as plt
 class Cell:
 
     row_number: int
-    grid__number: int
-    grid_number: int
+    column_number: int
+    block_number: int
     p: set[int]
     row: House
     column: House
@@ -18,8 +18,8 @@ class Cell:
     row_peers: House
     column_peers: House
     block_peers: House
-    
-    # 
+
+    #
     def __init__(self, r, c, possibilities=None):
         self.row_number = r
         self.column_number = c
@@ -66,6 +66,13 @@ class House:
     def remove(self, cell):
         self.cells.remove(cell)
 
+    # method: remove number from all unsolved cells' p in a house
+    def remove_p(self, number, cells_exempted):
+        for cell in self:
+            if cell.is_solved() or cell in cells_exempted:
+                continue
+            cell.remove(number)
+
     def __iter__(self):
         return iter(self.cells)
 
@@ -75,22 +82,22 @@ class House:
     def __repr__(self):
         return f"{self.house_type} {self.index}"
 
-    # search unsolved cells in a house
-    # if number in cells' possibilities,
-    # return {key: number, value: [cells]}
-    def count_same_p(self):
+    # method: count_p(number, times=1)
+    # if there are times number in unsolved cells in the house
+    # return the [cells], other wise return []
+    def find_cell(self, p, times=1):
 
-        candidate_cells = {n: [] for n in range(1, 10)}
+        cells = []
 
         for cell in self:
+            if not cell.is_solved():
+                if p in cell.p:
+                    cells.append(cell)
 
-            if cell.is_solved():
-                continue
-
-            for n in cell.p: 
-                candidate_cells[n].append(cell)
-        return candidate_cells
-
+        if len(cells) == times:
+            return cells
+        else:
+            return []
 
 # the class of Sudoku grid
 # __init__ with multiline str
@@ -114,7 +121,7 @@ class Sudoku:
         self.blocks = [House("Block", i) for i in range(9)]
 
 
-        # Instanciate cells, 
+        # Instanciate cells,
         lines = text.strip().splitlines()
 
         for r, line in enumerate(lines):
@@ -141,7 +148,7 @@ class Sudoku:
                 row.append(cell)
 
             self.grid.append(row)
-        
+
         # Initialize peers of all cells with its own peers of RCB
         for r in range(9):
             for c in range(9):
@@ -152,7 +159,7 @@ class Sudoku:
                 row_peers = House("Row Peers", str(r * 10 + c))
                 column_peers = House("Colume Peers", str(r * 10 + c))
                 block_peers = House("Block Peers", block_index)
-                
+
                 for peer in self.rows[r]:
                     row_peers.add(peer)
                 row_peers.remove(cell)
@@ -232,7 +239,7 @@ class Sudoku:
         ax.set_xticks([])
         ax.set_yticks([])
         ax.set_aspect("equal")
-        plt.show() 
+        plt.show()
 
     def show_progress_in_graphic(self, title, show_p=True):
         fig, ax = plt.subplots(figsize=(9, 9))
@@ -305,7 +312,7 @@ class Sudoku:
             self.unsolved.remove(cell)
         if not cell.is_solved() and not cell in self.unsolved:
             self.unsolved.add(cell)
-            
+
 
 
     # Solve method: Basic elimination
@@ -319,17 +326,17 @@ class Sudoku:
 
         # for each unsolved cells
         for index, question_cell in enumerate(self.unsolved):
-            
+
             # remove the number of solved cells from possibilities
             for cell in question_cell.row_peers:
-                if cell.is_solved(): 
+                if cell.is_solved():
                     p_len = len(question_cell.p)
                     question_cell.remove(cell.value())
                     if p_len != len(question_cell):
                         p_removed = True
 
             for cell in question_cell.column_peers:
-                if cell.is_solved(): 
+                if cell.is_solved():
                     p_len = len(question_cell.p)
                     question_cell.remove(cell.value())
                     if p_len != len(question_cell):
@@ -379,7 +386,7 @@ class Sudoku:
 
             # count candidate occurrences
             number_occurrences = {}
-            
+
             for i in range(1, 10):
                 number_occurrences[i] = []
 
@@ -418,7 +425,7 @@ class Sudoku:
     # This searchess naked pairs in all Houses.
     # This can remove ps.
     def naked_pair(self):
-        
+
         p_count_before = self.p_count()
 
         # searching naked pairs in all houses
@@ -488,7 +495,73 @@ class Sudoku:
         else:
             return False
 
+    # Solve method: X_Wings
+    def x_wings(self):
 
+        p_count_before = self.p_count()
+
+        # 1. find 2 n in row or column houses
+        for n in range(1, 10):
+
+            # row section
+            for row_number1 in range(0, 9):
+
+                c12 = self.rows[row_number1].find_cell(n, 2)
+
+                if len(c12) == 2:
+
+                    c1, c2 = c12[0], c12[1]
+
+                    # 2. find 2 n in row2 at same places
+                    for row_number2 in range(row_number1 + 1, 9):
+
+                        c34 = self.rows[row_number2].find_cell(n, 2)
+
+                        if len(c34) == 2:
+
+                            c3, c4 = c34[0], c34[1]
+
+                            if c1.column_number == c3.column_number and c2.column_number == c4.column_number:
+
+                                # 3. remove n from the places' perpendicular houses' cells' p
+                                self.columns[c1.column_number].remove_p(n, c12 + c34)
+                                self.columns[c2.column_number].remove_p(n, c12 + c34)
+
+            # column section
+            for column_number1 in range(0, 9):
+
+                c12 = self.columns[column_number1].find_cell(n, 2)
+
+                if len(c12) == 2:
+
+                    c1, c2 = c12[0], c12[1]
+
+                    # 2. find 2 n in 2 at same places
+                    for column_number2 in range(column_number1 + 1, 9):
+
+                        c34 = self.columns[column_number2].find_cell(n, 2)
+
+                        if len(c34) == 2:
+
+                            c3, c4 = c34[0], c34[1]
+
+                            if c1.row_number == c3.row_number and c2.row_number == c4.row_number:
+
+                                # 3. remove n from the places' perpendicular houses' cells' p
+                                self.rows[c1.row_number].remove_p(n, c12 + c34)
+                                self.rows[c2.row_number].remove_p(n, c12 + c34)
+
+        # progress check: if any p removed, show sudoku state and step += 1
+        if p_count_before != self.p_count():
+
+            # show the result
+            self.step += 1
+            title = "Step " + str(self.step) + " X Wings result"
+            self.show_progress_in_graphic(title)
+
+            return True
+        else:
+            return False
 
 def main():
     # example of Sudoku str
@@ -583,8 +656,21 @@ def main():
 007000300
 """
 
+    # BE XW HS is OK
+    puzzle8 = """
+000000000
+000003085
+001020000
+000507000
+004000100
+090000000
+500000073
+002010000
+000040009
+"""
+
     # instanciate a Sudoku
-    game = Sudoku(puzzle7)
+    game = Sudoku(puzzle8)
 
     # show the initial state
     game.show_progress_in_graphic("Initial State", False)
@@ -597,11 +683,11 @@ def main():
 #     print(game.grid[3][4].column_number)
 #     print(game.grid[3][4].block_number)
 #     print(game.grid[3][4].value())
-# 
+#
 #     print(game.grid[3][4].row)
 #     print(game.grid[3][4].column)
 #     print(game.grid[3][4].block)
-# 
+#
 #     print(game.grid[3][4].row_peers.cells)
 #     print(game.grid[3][4].column_peers.cells)
 #     print(game.grid[3][4].block_peers.cells)
@@ -614,6 +700,10 @@ def main():
 
         # Technique: Basic eliminations
         if game.basic_elimination():
+            continue
+
+        # Technique: X Wings
+        if game.x_wings():
             continue
 
         # Technique: hidden single
@@ -629,7 +719,7 @@ def main():
 
         # If it makes no progress after all methods
         if p_count_after == p_count_before:
-            
+
             # If is solved
             if game.is_solved():
                 game.show_progress_in_graphic("Sudoku has been solved!")
@@ -637,6 +727,6 @@ def main():
             else:
                 game.show_progress_in_graphic("Final state and need more techniques!")
                 return
-                
+
 if __name__ == "__main__":
     main()
