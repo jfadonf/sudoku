@@ -85,7 +85,7 @@ class House:
     # method: count_p(number, times=1)
     # if there are times number in unsolved cells in the house
     # return the [cells], other wise return []
-    def find_cell(self, p, times=1):
+    def find_x_ps(self, p, times=1):
 
         cells = []
 
@@ -506,7 +506,7 @@ class Sudoku:
             # row section
             for row_number1 in range(0, 9):
 
-                c12 = self.rows[row_number1].find_cell(n, 2)
+                c12 = self.rows[row_number1].find_x_ps(n, 2)
 
                 if len(c12) == 2:
 
@@ -515,7 +515,7 @@ class Sudoku:
                     # 2. find 2 n in row2 at same places
                     for row_number2 in range(row_number1 + 1, 9):
 
-                        c34 = self.rows[row_number2].find_cell(n, 2)
+                        c34 = self.rows[row_number2].find_x_ps(n, 2)
 
                         if len(c34) == 2:
 
@@ -530,7 +530,7 @@ class Sudoku:
             # column section
             for column_number1 in range(0, 9):
 
-                c12 = self.columns[column_number1].find_cell(n, 2)
+                c12 = self.columns[column_number1].find_x_ps(n, 2)
 
                 if len(c12) == 2:
 
@@ -539,7 +539,7 @@ class Sudoku:
                     # 2. find 2 n in 2 at same places
                     for column_number2 in range(column_number1 + 1, 9):
 
-                        c34 = self.columns[column_number2].find_cell(n, 2)
+                        c34 = self.columns[column_number2].find_x_ps(n, 2)
 
                         if len(c34) == 2:
 
