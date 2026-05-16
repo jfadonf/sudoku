@@ -569,10 +569,11 @@ class Sudoku:
     # Solve method: Pointing
     # if all p of certain number locate one row or column in a block
     # then remove the number from the other cells of the line
-    def pointing(self):
+    def pointing_and_claiming(self):
 
         p_count_before = self.p_count()
 
+        # pointing
         # iteration numbers in iteration of blocks
         for block in self.blocks:
 
@@ -613,20 +614,43 @@ class Sudoku:
                         if not cell.is_solved():
                             cell.remove(number)
 
+        # claiming
+        # iteration numbers in iteration of rows and columns
+        for house in self.rows + self.columns:
+
+            for number in range(1, 10):
+
+                cells = [c for c in house if number in c.p]
+
+                if not cells:
+                    continue
+
+                # check same block
+                blocks = {c.block for c in cells}
+
+                if len(blocks) == 1:
+
+                    block = next(iter(blocks))
+
+                    for cell in block:
+
+                        if cell in house:
+                            continue
+
+                        if not cell.is_solved():
+                            cell.remove(number)
+
         # progress check: if any p removed, show sudoku state and step += 1
         if p_count_before != self.p_count():
 
             # show the result
             self.step += 1
-            title = "Step " + str(self.step) + " Pointing result"
+            title = "Step " + str(self.step) + " Pointing and Claiming result"
             self.show_progress_in_graphic(title)
 
             return True
         else:
             return False
-                
-
-
 
 def main():
     # example of Sudoku str
@@ -772,7 +796,7 @@ def main():
             continue
 
         # Technique: pointing
-        if game.pointing():
+        if game.pointing_and_claiming():
             continue
 
         # Technique: hidden single
