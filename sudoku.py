@@ -566,15 +566,67 @@ class Sudoku:
         else:
             return False
 
+    # Solve method: Pointing
     # if all p of certain number locate one row or column in a block
     # then remove the number from the other cells of the line
-    # def claiming(self):
-        # find out the number and the row in block
-        # for block in self.blocks:
-        #    for number in range(1, 10):
+    def pointing(self):
+
+        p_count_before = self.p_count()
+
+        # iteration numbers in iteration of blocks
+        for block in self.blocks:
+
+            for number in range(1, 10):
+
+                cells = [c for c in block if number in c.p]
+
+                if not cells:
+                    continue
+
+                # check same row
+                rows = {c.row for c in cells}
+
+                if len(rows) == 1:
+
+                    row = next(iter(rows))
+
+                    for cell in row:
+
+                        if cell in block:
+                            continue
+
+                        if not cell.is_solved():
+                            cell.remove(number)
+
+                # check same column
+                columns = {c.column for c in cells}
+
+                if len(columns) == 1:
+
+                    column = next(iter(columns))
+
+                    for cell in column:
+
+                        if cell in block:
+                            continue
+
+                        if not cell.is_solved():
+                            cell.remove(number)
+
+        # progress check: if any p removed, show sudoku state and step += 1
+        if p_count_before != self.p_count():
+
+            # show the result
+            self.step += 1
+            title = "Step " + str(self.step) + " Pointing result"
+            self.show_progress_in_graphic(title)
+
+            return True
+        else:
+            return False
                 
 
-        # remove the number from the other cells of the line
+
 
 def main():
     # example of Sudoku str
@@ -717,6 +769,10 @@ def main():
 
         # Technique: X Wings
         if game.x_wings():
+            continue
+
+        # Technique: pointing
+        if game.pointing():
             continue
 
         # Technique: hidden single
