@@ -82,10 +82,11 @@ class House:
     def __repr__(self):
         return f"{self.house_type} {self.index}"
 
-    # method: count_p(number, times=1)
-    # if there are times number in unsolved cells in the house
-    # return the [cells], other wise return []
-    def find_x_ps(self, p, times=1):
+    # method: find_p(p, count=0)
+    # if count is absent, return all the cells with p
+    # if count is passed, if there count cells, return the [cells], 
+    # other wise return []
+    def find_p(self, p, count=0):
 
         cells = []
 
@@ -94,7 +95,9 @@ class House:
                 if p in cell.p:
                     cells.append(cell)
 
-        if len(cells) == times:
+        if count == 0:
+            return cells
+        elif len(cells) == count:
             return cells
         else:
             return []
@@ -506,7 +509,7 @@ class Sudoku:
             # row section
             for row_number1 in range(0, 9):
 
-                c12 = self.rows[row_number1].find_x_ps(n, 2)
+                c12 = self.rows[row_number1].find_p(n, 2)
 
                 if len(c12) == 2:
 
@@ -515,7 +518,7 @@ class Sudoku:
                     # 2. find 2 n in row2 at same places
                     for row_number2 in range(row_number1 + 1, 9):
 
-                        c34 = self.rows[row_number2].find_x_ps(n, 2)
+                        c34 = self.rows[row_number2].find_p(n, 2)
 
                         if len(c34) == 2:
 
@@ -530,7 +533,7 @@ class Sudoku:
             # column section
             for column_number1 in range(0, 9):
 
-                c12 = self.columns[column_number1].find_x_ps(n, 2)
+                c12 = self.columns[column_number1].find_p(n, 2)
 
                 if len(c12) == 2:
 
@@ -539,7 +542,7 @@ class Sudoku:
                     # 2. find 2 n in 2 at same places
                     for column_number2 in range(column_number1 + 1, 9):
 
-                        c34 = self.columns[column_number2].find_x_ps(n, 2)
+                        c34 = self.columns[column_number2].find_p(n, 2)
 
                         if len(c34) == 2:
 
@@ -562,6 +565,16 @@ class Sudoku:
             return True
         else:
             return False
+
+    # if all p of certain number locate one row or column in a block
+    # then remove the number from the other cells of the line
+    # def claiming(self):
+        # find out the number and the row in block
+        # for block in self.blocks:
+        #    for number in range(1, 10):
+                
+
+        # remove the number from the other cells of the line
 
 def main():
     # example of Sudoku str
