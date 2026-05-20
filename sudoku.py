@@ -316,7 +316,15 @@ class Sudoku:
         if not cell.is_solved() and not cell in self.unsolved:
             self.unsolved.add(cell)
 
-
+    # validate_all_cells
+    # based on current possibilities of cells make new unsolved House
+    def validate_all_cells(self):
+        for row in self.rows:
+            for cell in row:
+                if cell.is_solved() and cell in self.unsolved:
+                    self.unsolved.remove(cell)
+                if not cell.is_solved() and not cell in self.unsolved:
+                    self.unsolved.add(cell)
 
     # Solve method: Basic elimination
     # remove all the numbers occurs at the same row,
@@ -381,8 +389,8 @@ class Sudoku:
     # This searcheshe hidden singles in all House class.
     # This can solve cells
     def hidden_single(self):
-        newly_solved = []
 
+        newly_solved = []
 
         # search in all RCB
         for house in self.rows + self.columns + self.blocks:
@@ -566,7 +574,7 @@ class Sudoku:
         else:
             return False
 
-    # Solve method: Pointing
+    # Solve method: Pointing and claiming
     # if all p of certain number locate one row or column in a block
     # then remove the number from the other cells of the line
     def pointing_and_claiming(self):
@@ -653,7 +661,7 @@ class Sudoku:
             return False
 
 def main():
-    # example of Sudoku str
+    # example of Sudoku in str
     # BE is OK
     puzzle1 = """
 530070000
@@ -766,21 +774,6 @@ def main():
 
     # show all the possibilities
     game.show_progress_in_graphic("All Possibilities")
-
-### TEST EREA ###
-#    print(game.blocks[0].cells)
-#     print(game.grid[3][4].column_number)
-#     print(game.grid[3][4].block_number)
-#     print(game.grid[3][4].value())
-#
-#     print(game.grid[3][4].row)
-#     print(game.grid[3][4].column)
-#     print(game.grid[3][4].block)
-#
-#     print(game.grid[3][4].row_peers.cells)
-#     print(game.grid[3][4].column_peers.cells)
-#     print(game.grid[3][4].block_peers.cells)
-### TEST EREA ###
 
     # PROCESS OF SOLVING
     while True:
