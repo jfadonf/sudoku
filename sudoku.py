@@ -111,6 +111,7 @@ class Sudoku:
 
     grid: list[list[Cell]]
     unsolved: House
+    possibility_quantity: int = 0
     step: int = 0
 
     def __init__(self, text: str):
@@ -178,6 +179,9 @@ class Sudoku:
                     block_peers.add(peer)
                 block_peers.remove(cell)
                 cell.block_peers = block_peers
+
+        # count all possibilities
+        self.possibility_quantity = self.p_count()
 
     def show_progress_in_str(self):
 
@@ -300,11 +304,11 @@ class Sudoku:
 
     # to know if technique make any progress, count all p
     def p_count(self):
-        count_p = 0
+        ps = 0
         for r in range(9):
             for c in range(9):
-                count_p += len(self.grid[r][c].p)
-        return count_p
+                ps += len(self.grid[r][c].p)
+        return ps
 
 
     def is_solved(self):
@@ -317,14 +321,22 @@ class Sudoku:
             self.unsolved.add(cell)
 
     # validate_all_cells
-    # based on current possibilities of cells make new unsolved House
+    # 1. based on current possibilities of cells make new unsolved House
+    # 2. update the count all possibilities
     def validate_all_cells(self):
+        ps = 0
         for row in self.rows:
             for cell in row:
+                ps += len(cell.p)
                 if cell.is_solved() and cell in self.unsolved:
                     self.unsolved.remove(cell)
                 if not cell.is_solved() and not cell in self.unsolved:
                     self.unsolved.add(cell)
+        self.possibility_quantity = ps
+
+    # Show the progress of solving
+    def show_the_progress(self):
+        pass
 
     # Solve method: Basic elimination
     # remove all the numbers occurs at the same row,
@@ -778,7 +790,7 @@ def main():
     # PROCESS OF SOLVING
     while True:
         # count all p before this round techniques
-        p_count_before = game.p_count()
+        p_count_before = game.possibility_quantity
 
         # Technique: Basic eliminations
         if game.basic_elimination():
@@ -800,11 +812,8 @@ def main():
         if game.naked_pair():
             continue
 
-        # count all p after this round techniques
-        p_count_after = game.p_count()
-
         # If it makes no progress after all methods
-        if p_count_after == p_count_before:
+        if p_count_before == game.possibility_quantity:
 
             # If is solved
             if game.is_solved():
