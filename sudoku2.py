@@ -172,9 +172,26 @@ class Sudoku:
         return not self.unsolved_cells
 
     # validate_all_cells
+    # 0. search for controdictions in all houses
     # 1. based on current possibilities of cells update unsolved cells 
     # 2. update the possibility count
     def validate_all_cells(self):
+
+        # if there is controdictions
+        for house in self.rows + self.columns + self.blocks:
+
+            # dictionary: number is the key, solved sells list is the value
+            solved_numbers = {n: [] for n in range(1, 10)}
+
+            for cell in house:
+                if cell.solved:
+                    solved_numbers[cell.value()].append(cell)
+
+            # if the 2 or more items in a value
+            for n in range(1, 10):
+                if len(solved_numbers[n]) > 1:
+                    return (False, solved_numbers[n])
+
         pc = 0
         for row in self.rows:
             for cell in row:
@@ -184,6 +201,8 @@ class Sudoku:
                 if not cell.solved and not cell in self.unsolved_cells:
                     self.unsolved_cells.add(cell)
         self.possibility_count = pc
+
+        return (True, [])
 
     # Show progress in graphic with title and highlighted cells
     def show_progress_in_graphic(self, title, highlighted_cells=[], show_p=True):
@@ -520,7 +539,9 @@ def reasonning(game):
             method, highlighted_cells = m(game)
         
             # Validate all cells
-            game.validate_all_cells()
+            validated, contradictory_cells = game.validate_all_cells()
+            if not validated:
+                return "contradictory"
 
             # count all p after this round techniques
             p_count_after_method = game.possibility_count
@@ -546,12 +567,12 @@ def reasonning(game):
             # If is solved
             if game.is_solved():
                 game.show_progress_in_graphic("Sudoku has been solved!")
-                return
+                return "solved"
 
             # if still not
             else:
                 game.show_progress_in_graphic("Final state and need more techniques!")
-                return
+                return "no progress"
 
 
 # main function
