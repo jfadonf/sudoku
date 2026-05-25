@@ -49,15 +49,15 @@ class Cell:
         return len(self.possibilities)
 
     def __repr__(self):
-        return str(self.possibilities)
+        return "cell at " + str(self.row_number) + ", " + str(self.column_number)
 
     def remove_p_from_cell(self, p):
         self.possibilities.discard(p)
 
         # Ensure there is at least 1 p for the cell
-        if len(self.possibilities) == 0:
-            message = "No " + str(p) + " left for the cell r: " + str(self.row) + " c: " + str(self.column) + str(self)
-            raise ValueError(message)
+        # if len(self.possibilities) == 0:
+        #    message = "No " + str(p) + " left for the cell " + str(self.row_number) + " " + str(self.column_number) + "'s " + str(self.possibilities)
+        #    raise ValueError(message)
 
 
 # The group contains cells
@@ -172,12 +172,14 @@ class Sudoku:
         return not self.unsolved_cells
 
     # validate_all_cells
-    # 0. search for controdictions in all houses
+    # 0. if there are same number in 2 solved cells in a house
     # 1. based on current possibilities of cells update unsolved cells 
     # 2. update the possibility count
+    # 3. if there is a cell has no possibilities
+    # 4. return contradictions
     def validate_all_cells(self):
 
-        # if there is controdictions
+        # 0. if there are same number in 2 solved cells in a house
         for house in self.rows + self.columns + self.blocks:
 
             # dictionary: number is the key, solved sells list is the value
@@ -190,18 +192,31 @@ class Sudoku:
             # if the 2 or more items in a value
             for n in range(1, 10):
                 if len(solved_numbers[n]) > 1:
+                    print("same number " + str(n) + " at " + str(solved_numbers[n]))
                     return (False, solved_numbers[n])
 
+        # 1. 2. update the unsolved cells and total possibility count
         pc = 0
         for row in self.rows:
             for cell in row:
-                pc += len(cell.possibilities)
+
+                # 3. if there is a cell has no possibilities
+                pc_of_cell = len(cell.possibilities)
+                if pc_of_cell == 0:
+                    print("no possibilities for " + str(cell))
+                    return (False, [cell])
+
+                # 2. update the TPC
+                pc += pc_of_cell
+
+                # 1. update the unsolved cells
                 if cell.solved and cell in self.unsolved_cells:
                     self.unsolved_cells.remove(cell)
                 if not cell.solved and not cell in self.unsolved_cells:
                     self.unsolved_cells.add(cell)
         self.possibility_count = pc
 
+        # 4. return True
         return (True, [])
 
     # Show progress in graphic with title and highlighted cells
@@ -523,7 +538,7 @@ solve_methods = [basic_elimination, naked_pair, x_wings, hidden_single, pointing
 
 
 # Reasonning process
-def reasonning(game):
+def reason_out(game):
 
     while True:
 
@@ -543,7 +558,7 @@ def reasonning(game):
             if not validated:
                 return "contradictory"
 
-            # count all p after this round techniques
+            # count all p after this round reasonning
             p_count_after_method = game.possibility_count
 
             # If the method makes progress then show progress and restart from basic elimination
@@ -566,13 +581,52 @@ def reasonning(game):
 
             # If is solved
             if game.is_solved():
-                game.show_progress_in_graphic("Sudoku has been solved!")
                 return "solved"
 
-            # if still not
+            # if still not solved
             else:
-                game.show_progress_in_graphic("Final state and need more techniques!")
-                return "no progress"
+                return "stuck"
+
+
+# Guessing process
+def solve(game):
+
+    # Step 1: reasonning first
+    result = reason_out(game)
+
+    if result == "solved":
+        game.show_progress_in_graphic("Sudoku has been solved!")
+        return True
+
+    if result == "contradictory":
+        return False
+
+    # Step 2: guess
+    cell = min(game.unsolved_cells.cells, key=lambda c: len(c.possibilities))
+    # cell = game.unsolved_cells.cells[0]
+
+    row = cell.row_number
+    col = cell.column_number
+
+    # Step 3: try all possibilities
+    for p in list(cell.possibilities):
+
+        print(f"guessing {row} {col} is {p}")
+
+        game_copy = deepcopy(game)
+
+        test_cell = game_copy.grid[row][col]
+        test_cell.possibilities = {p}
+
+        game_copy.unsolved_cells.remove(test_cell)
+
+        if solve(game_copy):
+            # copy solution back
+            game.grid = game_copy.grid
+            return True
+
+    # Step 4: all guesses failed
+    return False
 
 
 # main function
@@ -683,7 +737,7 @@ def main():
 """
 
     # instanciate a Sudoku
-    game = Sudoku(puzzle8)
+    game = Sudoku(puzzle6)
 
     # show the initial state
     game.show_progress_in_graphic("Initial State", False)
@@ -691,8 +745,8 @@ def main():
     # show all the possibilities
     game.show_progress_in_graphic("All Possibilities")
     
-    # reasonning solve
-    reasonning(game)
+    # solve out
+    solve(game)
 
 if __name__ == "__main__":
     main()
