@@ -1,10 +1,15 @@
 # Refactor of Sudoku.py, preparing for recursive reasonning
 
+import os
+
+os.makedirs("Sudoku_steps", exist_ok=True)
+
 # To copy nested list
 from copy import deepcopy
 
 # To draw the Sudoku in graphic
 import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
 
 # Cell class
 # init(r, c, ps=None)
@@ -219,28 +224,48 @@ class Sudoku:
         # 4. return True
         return (True, [])
 
+
     # Show progress in graphic with title and highlighted cells
     def show_progress_in_graphic(self, title, highlighted_cells=[], show_p=True):
+
         fig, ax = plt.subplots(figsize=(9, 9))
         fig.suptitle(title, fontsize=24)
         ax.set_title(
             f"Unsolved cells: {len(self.unsolved_cells)}\nTatal possibilities: {self.possibility_count}",
             fontsize=14
         )
+
         # draw grid lines
         for i in range(10):
             linewidth = 3 if i % 3 == 0 else 1
-            # horizontal
             ax.plot([0, 9], [i, i], color="black", linewidth=linewidth)
-            # vertical
             ax.plot([i, i], [0, 9], color="black", linewidth=linewidth)
+
+        # ===== highlight cells =====
+        for cell, kind in highlighted_cells:
+            r, c = cell.row, cell.column
+            x = c
+            y = 8 - r
+            if kind == "related":
+                color = "yellow"
+            elif kind == "proved":
+                color = "green"
+            else:
+                continue
+            ax.add_patch(Rectangle(
+                (x, y),
+                1, 1,
+                fill=False,
+                edgecolor=color,
+                linewidth=3
+            ))
+
         # draw cells
         for r in range(9):
             for c in range(9):
                 cell = self.grid[r][c]
                 x0 = c
                 y0 = 8 - r
-                # solved cell
                 if cell.solved:
                     ax.text(
                         x0 + 0.5,
@@ -250,18 +275,14 @@ class Sudoku:
                         va="center",
                         fontsize=24
                     )
-                # candidate numbers
                 elif show_p:
                     for n in range(1, 10):
                         if n in cell.possibilities:
-                            # mini-grid position
                             sub_r = (n - 1) // 3
                             sub_c = (n - 1) % 3
-                            x = x0 + (sub_c + 0.5) / 3
-                            y = y0 + 1 - (sub_r + 0.5) / 3
                             ax.text(
-                                x,
-                                y,
+                                x0 + (sub_c + 0.5) / 3,
+                                y0 + 1 - (sub_r + 0.5) / 3,
                                 str(n),
                                 ha="center",
                                 va="center",
@@ -272,7 +293,10 @@ class Sudoku:
         ax.set_xticks([])
         ax.set_yticks([])
         ax.set_aspect("equal")
-        plt.show()
+        
+        filename = f"Sudoku_steps/sudoku_step_{self.step:03d}_img.png"
+        plt.savefig(filename, dpi=300, bbox_inches="tight")
+        plt.close()
 
 
 # Solve method: Basic elimination
@@ -737,10 +761,10 @@ def main():
 """
 
     # instanciate a Sudoku
-    game = Sudoku(puzzle6)
+    game = Sudoku(puzzle7)
 
     # show the initial state
-    game.show_progress_in_graphic("Initial State", False)
+    game.show_progress_in_graphic("Initial State", [], False)
 
     # show all the possibilities
     game.show_progress_in_graphic("All Possibilities")
